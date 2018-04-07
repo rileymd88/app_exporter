@@ -1,16 +1,30 @@
 
 
+var config;
+$.ajax({
+	url: "./config.json",
+	type: "GET",
+	dataType: "JSON",
+	success: function (config) {
+ 	config = {
+			//GEN
+			host: config.engineHost,
+			port: config.requirePort,
+			isSecure: config.secure,
+			//ENDGEN
+			prefix: config.prefix
+		};
+	},
+	error: function (jqXHR, textStatus, errorThrown) {
+		console.log(textStatus, errorThrown);
+	}
+});
+
+
 var appsList;
 var appId;
 var dimensionsList;
-var config = {
-	//GEN
-	host: "battlestation",
-	port: "443",
-	isSecure: true,
-	//ENDGEN
-	prefix: "/"
-};
+
 
 
 
