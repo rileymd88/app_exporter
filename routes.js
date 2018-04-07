@@ -56,7 +56,6 @@ exports.getAppList = function (req, res) {
                 apps.push({ appName: list[i].qTitle, appId: list[i].qDocId });
             }
             res.send(apps);
-            session.close().then(()=>) 
         });
 }
 
