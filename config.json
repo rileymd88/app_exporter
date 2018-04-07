@@ -1,0 +1,10 @@
+{
+    "certificatesPath": "./cert",
+    "engineAppId": "engineData",
+    "engineHost": "battlestation",
+    "enginePort": 4747,
+    "userDirectory": "BATTLESTATION",
+    "userId": "riley",
+    "appExporterFolder": "C:",
+    "qlikShareFolder": "D:/qlikshare"
+}

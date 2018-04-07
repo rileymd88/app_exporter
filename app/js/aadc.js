@@ -22,8 +22,7 @@ require(["js/qlik", "jquery"], function (qlik, $) {
 	qlik.setOnError(function (error) {
 		alert(error.message);
 	});
-
-
+	$('#form-group').hide();
 });
 // Get session
 /* $.ajax({
@@ -37,21 +36,21 @@ require(["js/qlik", "jquery"], function (qlik, $) {
 		console.log(textStatus, errorThrown);
 	}
 }).then(function () { */
-	$.ajax({
-		url: "/getAppList",
-		type: "GET",
-		dataType: "JSON",
-		success: function (apps) {
-			appsList = apps;
-			$('div.appMenu select').val('(No app selected)');
-			$.each(apps, function (key, value) {
-				$("#appMenu").append('<option value=' + value.appId + '>' + value.appName + '</option>');
-			});
-		},
-		error: function (jqXHR, textStatus, errorThrown) {
-			console.log(textStatus, errorThrown);
-		}
-	});
+$.ajax({
+	url: "/getAppList",
+	type: "GET",
+	dataType: "JSON",
+	success: function (apps) {
+		appsList = apps;
+		$('div.appMenu select').val('(No app selected)');
+		$.each(apps, function (key, value) {
+			$("#appMenu").append('<option value=' + value.appId + '>' + value.appName + '</option>');
+		});
+	},
+	error: function (jqXHR, textStatus, errorThrown) {
+		console.log(textStatus, errorThrown);
+	}
+});
 //});
 
 $('#submitButton').click(function () {
@@ -90,7 +89,6 @@ $('#submitButton').click(function () {
 					list[i].qType != 'measure' &&
 					list[i].qType != 'snapshot' &&
 					list[i].qType != 'bookmark' &&
-					list[i].qType != 'variable' &&
 					list[i].qType != 'story' &&
 					list[i].qType != 'LoadModel' &&
 					list[i].qType != 'embeddedsnapshot' &&
@@ -104,11 +102,11 @@ $('#submitButton').click(function () {
 				}
 			}
 			var zipResponses = [];
-			for(i=0; i<extensionList.length;i++) {
+			for (i = 0; i < extensionList.length; i++) {
 				$.ajax({
 					url: "/zipExtension",
 					type: "GET",
-					data: $.param({ "extName": extensionList[i], "appName": $('#appMenu').find("option:selected").text(), "appId":$('#appMenu').find("option:selected").val()}),
+					data: $.param({ "extName": extensionList[i], "appName": $('#appMenu').find("option:selected").text(), "appId": $('#appMenu').find("option:selected").val() }),
 					success: function (response) {
 						zipResponses.push(response);
 					},
@@ -117,40 +115,11 @@ $('#submitButton').click(function () {
 					}
 				});
 			}
-			console.log(zipResponses);
-			/* completeList = [];
-				notFoundList = [];
-				errorList = [];
-			for(i=0;i<zipResponses;i++) {
-				
-				if(zipResponses[i].status == 'COMPLETE') {
-					completeList.push(zipResponses[i].extName);
-				}
-				else if(zipResponses[i].status == 'EXT NOT FOUND'){
-					notFoundList.push(zipResponses[i].extName);
-				}
-				else if(zipResponses[i].status == 'ERROR') {
-					errorList.push(zipResponses[i].extName);
-				}
-			}
-			alertString = '';
-			if(notFoundList.length == 0 && errorList.length) {
-				alertString = 'Sucess! The following extensions have been exported: ';
-				for(i=0;i<completeList.length;i++) {
-					if(i == completeList.length -1) {
-						alertString +=  completeList[i];
-					}
-					else {
-						alertString +=  completeList[i] + ", ";
-					}
-					
-				}
-				alert(alertString);
-			}
-			else {
-				alert(errorList + ' ' + notFoundList);
-			} */
-		
+			setTimeout(function () {
+				console.log(JSON.stringify(zipResponses));
+				$('#form').toggle();
+				$('#status').append(document.createTextNode(JSON.stringify(zipResponses)));
+			}, 1500);
 		},
 		error: function (jqXHR, textStatus, errorThrown) {
 			console.log(textStatus, errorThrown);

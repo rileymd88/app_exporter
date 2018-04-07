@@ -1,9 +1,12 @@
-const engineAppId = 'engineData';
-const engineHost = 'battlestation';
-const enginePort = 4747;
-const userDirectory = 'BATTLESTATION';
-const userId = 'riley';
-const certificatesPath = './cert';
+const config = require('./config.json');
+const engineAppId = config.engineAppId;
+const engineHost = config.engineHost;
+const enginePort = config.enginePort;
+const userDirectory = config.userDirectory;
+const userId = config.userId;
+const certificatesPath = config.certificatesPath;
+const appExporterFolder = config.appExporterFolder;
+const qlikShareFolder = config.qlikShareFolder;
 const enigma = require('enigma.js');
 const WebSocket = require('ws');
 const path = require('path');
@@ -12,29 +15,34 @@ const schema = require('enigma.js/schemas/12.20.0.json');
 const promise = require('promise');
 var findInFiles = require('find-in-files');
 var zipFolder = require('zip-folder');
+var session;
 
 const readCert = filename => fs.readFileSync(path.resolve(__dirname, certificatesPath, filename));
 
 // Enigma session config
-var session = enigma.create({
-    schema,
-    url: `wss://${engineHost}:${enginePort}/app/${engineAppId}`,
-    // Notice the non-standard second parameter here, this is how you pass in
-    // additional configuration to the 'ws' npm library, if you use a different
-    // library you may configure this differently:
-    createSocket: url => new WebSocket(url, {
-        ca: [readCert('root.pem')],
-        key: readCert('client_key.pem'),
-        cert: readCert('client.pem'),
-        headers: {
-            'X-Qlik-User': `UserDirectory=${encodeURIComponent(userDirectory)}; UserId=${encodeURIComponent(userId)}`,
-        },
-    }),
-});
+function newSession() {
+        session = enigma.create({
+        schema,
+        url: `wss://${engineHost}:${enginePort}/app/${engineAppId}`,
+        // Notice the non-standard second parameter here, this is how you pass in
+        // additional configuration to the 'ws' npm library, if you use a different
+        // library you may configure this differently:
+        createSocket: url => new WebSocket(url, {
+            ca: [readCert('root.pem')],
+            key: readCert('client_key.pem'),
+            cert: readCert('client.pem'),
+            headers: {
+                'X-Qlik-User': `UserDirectory=${encodeURIComponent(userDirectory)}; UserId=${encodeURIComponent(userId)}`,
+            },
+        }),
+    });
+}
+
 
 exports.getAppList = async function (req, res) {
     console.log('try');
     try {
+        await newSession(); 
         global = await session.open();
         list = await global.getDocList();
         var apps = [];
@@ -53,6 +61,7 @@ exports.getAppList = async function (req, res) {
 
 exports.getExtensions = async function (req, res) {
     try {
+        await newSession(); 
         global = await session.open();
         app = await global.openDoc(req.query.appId);
         console.log('app', app);
@@ -78,14 +87,14 @@ exports.findExtensions = async function (req, res) {
 }
 
 exports.zipExtension = function (req, res) {
-    if (!fs.existsSync('C:/AppExporter')) {
-        fs.mkdir('C:/AppExporter');
+    if (!fs.existsSync(appExporterFolder + '/AppExporter')) {
+        fs.mkdir(appExporterFolder + '/AppExporter');
     }
-    if (fs.existsSync('C:/qlikshare/StaticContent/Extensions/' + req.query.extName)) {
-        if (!fs.existsSync('C:/AppExporter/' + req.query.appName)) {
-            fs.mkdir('C:/AppExporter/' + req.query.appName);
+    if (fs.existsSync(qlikShareFolder + '/StaticContent/Extensions/' + req.query.extName)) {
+        if (!fs.existsSync(appExporterFolder + '/AppExporter/' + req.query.appName)) {
+            fs.mkdir(appExporterFolder + '/AppExporter/'+ req.query.appName);
         }
-        zipFolder('C:/qlikshare/StaticContent/Extensions/' + req.query.extName, 'C:/AppExporter/' + req.query.appName + '/' + req.query.extName + '.zip', function (err) {
+        zipFolder(qlikShareFolder + '/StaticContent/Extensions/' + req.query.extName, appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.extName + '.zip', function (err) {
             if (err) {
                 res.send({ "extName": req.query.extName, "status": err })
                 console.log('ERROR', err);
@@ -98,5 +107,5 @@ exports.zipExtension = function (req, res) {
     else {
         res.send({ "extName": req.query.extName, "status": 'EXT NOT FOUND' })
     }
-    fs.createReadStream('C:/qlikshare/Apps/' + req.query.appId).pipe(fs.createWriteStream('C:/AppExporter/' + req.query.appName + '/' + req.query.appName + '.qvf'));
+    fs.createReadStream(qlikShareFolder + '/Apps/' + req.query.appId).pipe(fs.createWriteStream(appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.appName + '.qvf'));
 }
