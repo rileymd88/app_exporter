@@ -1,0 +1,23 @@
+
+.listBox > .list-group {
+    display:inline-flex;
+    flex-grow: 1; 
+    flex-direction: column;
+    overflow-y: scroll;
+ }
+ .main {
+    flex: 1 1 0; /* flex: 1, which you had before, is equivalent but doesn't work */
+    display: flex;
+    flex-direction: column;
+    overflow-y: scroll;
+}
+
+body {
+    color: #000;
+    font-family: 'Play', sans-serif;
+    font-size: 16px;
+    line-height: 25px;
+    background: #ffffff;
+    letter-spacing:0.2px;
+    overflow-y: scroll;
+}

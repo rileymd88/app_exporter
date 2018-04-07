@@ -1,0 +1,21 @@
+{
+  "name": "odag_wizard",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "Riley MacDonald",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.2",
+    "find-in-files": "^0.5.0",
+    "horsey": "^4.2.2",
+    "jquery": "^3.3.1",
+    "promise": "^8.0.1",
+    "socket.io": "^2.0.4",
+    "zip-archiver": "0.0.4",
+    "zip-folder": "^1.0.0"
+  }
+}
