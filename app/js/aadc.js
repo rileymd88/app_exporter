@@ -5,7 +5,7 @@ var appId;
 var dimensionsList;
 var config = {
 	//GEN
-	host: "DEDUS-CKH.qliktech.com",
+	host: "battlestation",
 	port: "443",
 	isSecure: true,
 	//ENDGEN
@@ -26,7 +26,7 @@ require(["js/qlik", "jquery"], function (qlik, $) {
 
 });
 // Get session
-$.ajax({
+/* $.ajax({
 	url: "/getSession",
 	type: "POST",
 	dataType: "text",
@@ -36,7 +36,7 @@ $.ajax({
 	error: function (jqXHR, textStatus, errorThrown) {
 		console.log(textStatus, errorThrown);
 	}
-}).then(function () {
+}).then(function () { */
 	$.ajax({
 		url: "/getAppList",
 		type: "GET",
@@ -45,7 +45,6 @@ $.ajax({
 			appsList = apps;
 			$('div.appMenu select').val('(No app selected)');
 			$.each(apps, function (key, value) {
-
 				$("#appMenu").append('<option value=' + value.appId + '>' + value.appName + '</option>');
 			});
 		},
@@ -53,7 +52,7 @@ $.ajax({
 			console.log(textStatus, errorThrown);
 		}
 	});
-});
+//});
 
 $('#submitButton').click(function () {
 	console.log('click');

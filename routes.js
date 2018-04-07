@@ -1,8 +1,8 @@
 const engineAppId = 'engineData';
-const engineHost = 'DEDUS-CKH.qliktech.com';
+const engineHost = 'battlestation';
 const enginePort = 4747;
-const userDirectory = 'QTSEL';
-const userId = 'CKG';
+const userDirectory = 'BATTLESTATION';
+const userId = 'riley';
 const certificatesPath = './cert';
 const enigma = require('enigma.js');
 const WebSocket = require('ws');
@@ -10,15 +10,13 @@ const path = require('path');
 const fs = require('fs');
 const schema = require('enigma.js/schemas/12.20.0.json');
 const promise = require('promise');
-var global;
 var findInFiles = require('find-in-files');
 var zipFolder = require('zip-folder');
-var app;
 
 const readCert = filename => fs.readFileSync(path.resolve(__dirname, certificatesPath, filename));
 
 // Enigma session config
-const session = enigma.create({
+var session = enigma.create({
     schema,
     url: `wss://${engineHost}:${enginePort}/app/${engineAppId}`,
     // Notice the non-standard second parameter here, this is how you pass in
@@ -34,50 +32,42 @@ const session = enigma.create({
     }),
 });
 
-
-
-
-exports.getSession = function (req, res) {
-    session.open().then((globalSession) => {
-        console.log('Session was opened successfully');
-        global = globalSession;
-        res.send('global');
-    }).catch((error) => {
-        console.log('Failed to open session and/or retrieve the app list:', error);
-        res.send(error);
-    });
+exports.getAppList = async function (req, res) {
+    console.log('try');
+    try {
+        global = await session.open();
+        list = await global.getDocList();
+        var apps = [];
+        for (var i = 0, len = list.length; i < len; i++) {
+            apps.push({ appName: list[i].qTitle, appId: list[i].qDocId });
+        }
+        await session.close();
+        res.send(apps);
+    }
+    catch (err) {
+        console.log(err);
+    }
 }
 
 
-exports.getAppList = function (req, res) {
-        global.getDocList().then((list) => {
-            var apps = [];
-            for (var i = 0, len = list.length; i < len; i++) {
-                apps.push({ appName: list[i].qTitle, appId: list[i].qDocId });
-            }
-            res.send(apps);
-        });
+
+exports.getExtensions = async function (req, res) {
+    try {
+        global = await session.open();
+        app = await global.openDoc(req.query.appId);
+        console.log('app', app);
+        list = await app.getAllInfos();
+        console.log(list);
+        await session.close();
+        res.send(list);
+    }
+    catch (err) {
+        console.log(err);
+    }
 }
 
-exports.getExtensions = function (req, res) {
-        global.openDoc(req.query.appId).then((a) => {
-            app = a;
-            console.log('app', app);
-            app.getAllInfos().then(function (list) {
-                console.log(list);
-                res.send(list);
-            }).catch((err)=>{
-                console.log(err);
-            })
-        }).catch((err)=>{
-            console.log(err);
-        })
-}
-
-exports.findExtensions = function (req, res) {
-    var findInFiles = require("find-in-files")
-    findInFiles.find("jarvis", 'C:/qlikshare/StaticContent/Extensions', '.qext')
-        .then(function (results) {
+exports.findExtensions = async function (req, res) {
+    results = await findInFiles.find("jarvis", 'C:/qlikshare/StaticContent/Extensions', '.qext');
             for (var result in results) {
                 var res = results[result];
                 console.log(
@@ -85,7 +75,6 @@ exports.findExtensions = function (req, res) {
                     + ' times in "' + result + '"'
                 );
             }
-        });
 }
 
 exports.zipExtension = function (req, res) {

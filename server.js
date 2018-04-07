@@ -9,7 +9,6 @@ var app = express();
 
 app.use(express.static(__dirname));
 app.use('/getAppList', routes.getAppList);
-app.use('/getSession', routes.getSession);
 app.use('/getExtensions', routes.getExtensions);
 app.use('/findExtensions', routes.findExtensions);
 app.use('/zipExtension', routes.zipExtension);

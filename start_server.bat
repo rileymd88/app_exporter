@@ -1,6 +1,6 @@
 @echo on
 
-cd C:/Users/ckg/Documents/NetBeansProjects/app_exporter/app
+cd C:/Users/Riley/Documents/NetBeansProjects/app_exporter/app
 
 npm run start
 
