@@ -1,13 +1,13 @@
 {
     "certificatesPath": "./cert",
     "engineAppId": "engineData",
-    "engineHost": "battlestation",
+    "engineHost": "DEDUS-CKH.qliktech.com",
     "enginePort": 4747,
     "requirePort": 443,
     "secure": true,
     "prefix": "/",
-    "userDirectory": "BATTLESTATION",
-    "userId": "riley",
+    "userDirectory": "QTSEL",
+    "userId": "ckg",
     "appExporterFolder": "C:",
-    "qlikShareFolder": "D:/qlikshare"
+    "qlikShareFolder": "C:/qlikshare"
 }
