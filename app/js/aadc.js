@@ -16,12 +16,7 @@ $(document).ready(function () {
 			console.log(textStatus, errorThrown);
 		}
 	});
-	if (typeof jQuery != 'undefined') {
-		// jQuery is loaded => print the version
-		console.log(jQuery.fn.jquery);
-	}
 	$('#submitButton').click(function () {
-		console.log('click');
 		$.ajax({
 			url: "/getExtensions",
 			type: "GET",
@@ -84,7 +79,7 @@ $(document).ready(function () {
 				}
 				setTimeout(function () {
 					console.log(JSON.stringify(zipResponses));
-					$('#form').toggle();
+					$('#form').show();
 					$('#status').append(document.createTextNode(JSON.stringify(zipResponses)));
 				}, 1500);
 			},
