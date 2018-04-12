@@ -40,7 +40,6 @@ function newSession() {
 
 
 exports.getAppList = async function (req, res) {
-    console.log('try');
     try {
         await newSession(); 
         global = await session.open();

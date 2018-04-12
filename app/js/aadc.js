@@ -1,5 +1,5 @@
 
-
+$(document).ready(function () {
 	$('#form-group').hide();
 	$.ajax({
 		url: "/getAppList",
@@ -16,7 +16,10 @@
 			console.log(textStatus, errorThrown);
 		}
 	});
-
+	if (typeof jQuery != 'undefined') {
+		// jQuery is loaded => print the version
+		console.log(jQuery.fn.jquery);
+	}
 	$('#submitButton').click(function () {
 		console.log('click');
 		$.ajax({
@@ -90,6 +93,9 @@
 			}
 		});
 	})
+});
+
+
 
 
 
