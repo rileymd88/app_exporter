@@ -15,13 +15,14 @@ const schema = require('enigma.js/schemas/12.20.0.json');
 const promise = require('promise');
 var findInFiles = require('find-in-files');
 var zipFolder = require('zip-folder');
+var qrsInteract = require('qrs-interact');
 var session;
 
 const readCert = filename => fs.readFileSync(path.resolve(__dirname, certificatesPath, filename));
 
 // Enigma session config
 function newSession() {
-        session = enigma.create({
+    session = enigma.create({
         schema,
         url: `wss://${engineHost}:${enginePort}/app/${engineAppId}`,
         // Notice the non-standard second parameter here, this is how you pass in
@@ -41,7 +42,7 @@ function newSession() {
 
 exports.getAppList = async function (req, res) {
     try {
-        await newSession(); 
+        await newSession();
         global = await session.open();
         list = await global.getDocList();
         var apps = [];
@@ -60,7 +61,7 @@ exports.getAppList = async function (req, res) {
 
 exports.getExtensions = async function (req, res) {
     try {
-        await newSession(); 
+        await newSession();
         global = await session.open();
         app = await global.openDoc(req.query.appId);
         console.log('app', app);
@@ -76,35 +77,65 @@ exports.getExtensions = async function (req, res) {
 
 exports.findExtensions = async function (req, res) {
     results = await findInFiles.find("jarvis", 'C:/qlikshare/StaticContent/Extensions', '.qext');
-            for (var result in results) {
-                var res = results[result];
-                console.log(
-                    'found "' + res.matches[0] + '" ' + res.count
-                    + ' times in "' + result + '"'
-                );
-            }
+    for (var result in results) {
+        var res = results[result];
+        console.log(
+            'found "' + res.matches[0] + '" ' + res.count
+            + ' times in "' + result + '"'
+        );
+    }
 }
 
 exports.zipExtension = function (req, res) {
+    var status = '';
     if (!fs.existsSync(appExporterFolder + '/AppExporter')) {
         fs.mkdir(appExporterFolder + '/AppExporter');
     }
     if (fs.existsSync(qlikShareFolder + '/StaticContent/Extensions/' + req.query.extName)) {
         if (!fs.existsSync(appExporterFolder + '/AppExporter/' + req.query.appName)) {
-            fs.mkdir(appExporterFolder + '/AppExporter/'+ req.query.appName);
+            fs.mkdir(appExporterFolder + '/AppExporter/' + req.query.appName);
         }
         zipFolder(qlikShareFolder + '/StaticContent/Extensions/' + req.query.extName, appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.extName + '.zip', function (err) {
             if (err) {
-                res.send({ "extName": req.query.extName, "status": err })
-                console.log('ERROR', err);
+                status = err;
             } else {
-                res.send({ "extName": req.query.extName, "status": 'COMPLETE' })
-                console.log('COMPLETE');
+                status = 'COMPLETE';
             }
         });
     }
     else {
-        res.send({ "extName": req.query.extName, "status": 'EXT NOT FOUND' })
+        status = 'EXTENSION NOT FOUND';
     }
     fs.createReadStream(qlikShareFolder + '/Apps/' + req.query.appId).pipe(fs.createWriteStream(appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.appName + '.qvf'));
+    res.send({ "name": req.query.extName, "status": status, })
+}
+
+exports.importApp = function (req, res) {
+    var appFolder = req.query.appFolder;
+    var qrsInstance = {
+        hostname: engineHost,
+        localCertPath: certificatesPath,
+        repoAccount: 'UserDirectory=' + userDirectory + ';UserId=' + userId,
+        repoAccountUserDirectory: userDirectory,
+        repoAccountUserId: userId
+    };
+    var qrs = new qrsInteract(qrsInstance);
+    var stream = fs.createReadStream(appFolder);
+    if (req.query.type == "ext") {
+        qrs.Post('/extension/upload', stream, 'vnd.qlik.sense.app').then(function (result) {
+            console.log(result);
+            if(result.statusCode == 201) {
+                res.send({"name":result.body[0].name, "type": "ext", "status": "COMPLETE"});
+            }
+        })
+    }
+    else if(req.query.type == "app") {
+        qrs.Post('app/upload?name=' + req.query.appName,stream,'application/vnd.qlik.sense.app').then(function (result) {
+            console.log(result);
+            if(result.statusCode == 201) {
+                res.send({"name":result.body[0].name, "type": "app", "status": "COMPLETE"});
+            }
+        });
+    }
+
 }

@@ -12,6 +12,7 @@ app.use('/getAppList', routes.getAppList);
 app.use('/getExtensions', routes.getExtensions);
 app.use('/findExtensions', routes.findExtensions);
 app.use('/zipExtension', routes.zipExtension);
+app.use('/importApp', routes.importApp);
 
 var sslOptions = {
     key: fs.readFileSync('./cert/server_key.pem'),

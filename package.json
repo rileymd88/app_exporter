@@ -14,6 +14,7 @@
     "find-in-files": "^0.5.0",
     "jquery": "^3.3.1",
     "promise": "^8.0.1",
+    "qrs-interact": "^3.0.0",
     "socket.io": "^2.0.4",
     "ws": "^5.1.1",
     "zip-folder": "^1.0.0"
