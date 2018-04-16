@@ -75,11 +75,19 @@ $(document).ready(function () {
 						}
 					}
 					var zipResponses = [];
+					var params = '';
 					for (i = 0; i < extensionList.length; i++) {
+						if(i == extensionList.length -1) {
+							params = { "extName": extensionList[i], "appName": $('#appMenu').find("option:selected").text(), "appId": $('#appMenu').find("option:selected").val(), "last": 1};
+						}
+						else {
+							params = { "extName": extensionList[i], "appName": $('#appMenu').find("option:selected").text(), "appId": $('#appMenu').find("option:selected").val(), "last": 0};
+
+						}
 						$.ajax({
 							url: "/zipExtension",
 							type: "GET",
-							data: $.param({ "extName": extensionList[i], "appName": $('#appMenu').find("option:selected").text(), "appId": $('#appMenu').find("option:selected").val() }),
+							data: $.param(params),
 							success: function (response) {
 								zipResponses.push(response);
 							},
@@ -104,7 +112,6 @@ $(document).ready(function () {
 			importResponses = [];
 			$('#file1').change(function() {
 				var files = $('#file1')[0].files;
-				console.log('files', files);
 				for(i=0; i<files.length;i++) {
 					if(files[i].name.indexOf('.zip') !== -1) {
 						$.ajax({
@@ -137,7 +144,7 @@ $(document).ready(function () {
 				setTimeout(function () {
 					console.log(importResponses);
 					$('#form').show();
-					$('#status').append(document.createTextNode(importResponses));
+					$('#status').append(document.createTextNode(JSON.stringify(importResponses)));
 				}, 1500);
 			});
 			$('#file1').trigger('click');

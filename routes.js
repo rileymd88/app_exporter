@@ -17,6 +17,14 @@ var findInFiles = require('find-in-files');
 var zipFolder = require('zip-folder');
 var qrsInteract = require('qrs-interact');
 var session;
+var qrsInstance = {
+    hostname: engineHost,
+    localCertPath: certificatesPath,
+    repoAccount: 'UserDirectory=' + userDirectory + ';UserId=' + userId,
+    repoAccountUserDirectory: userDirectory,
+    repoAccountUserId: userId
+};
+var qrs = new qrsInteract(qrsInstance);
 
 const readCert = filename => fs.readFileSync(path.resolve(__dirname, certificatesPath, filename));
 
@@ -97,35 +105,45 @@ exports.zipExtension = function (req, res) {
         }
         zipFolder(qlikShareFolder + '/StaticContent/Extensions/' + req.query.extName, appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.extName + '.zip', function (err) {
             if (err) {
-                status = err;
+                if(req.query.last = 1) {
+                    fs.createReadStream(qlikShareFolder + '/Apps/' + req.query.appId).pipe(fs.createWriteStream(appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.appName + '.qvf'));
+                    res.send([{"name": req.query.extName, "type": "ext", "status": err},{"name": req.query.appName, "type": "app", "status": 'COMPLETE'}])
+                }
+                else {
+                    res.send({ "name": req.query.extName, "type": "ext", "status": err})
+                }
             } else {
-                status = 'COMPLETE';
+                if(req.query.last = 1) {
+                    fs.createReadStream(qlikShareFolder + '/Apps/' + req.query.appId).pipe(fs.createWriteStream(appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.appName + '.qvf'));
+                    res.send([{"name": req.query.extName, "type": "ext", "status": 'COMPLETE'},{"name": req.query.appName, "type": "app", "status": 'COMPLETE'}])
+                }
+                else {
+                    res.send({ "name": req.query.extName, "type": "ext", "status": 'COMPLETE'})
+                }
             }
         });
     }
     else {
-        status = 'EXTENSION NOT FOUND';
+        if(req.query.last = 1) {
+            fs.createReadStream(qlikShareFolder + '/Apps/' + req.query.appId).pipe(fs.createWriteStream(appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.appName + '.qvf'));
+            res.send([{"name": req.query.extName, "type": "ext", "status": 'EXTENSION NOT FOUND'},{"name": req.query.appName, "type": "app", "status": 'COMPLETE'}])
+        }
+        else {
+            res.send({ "name": req.query.extName, "type": "ext", "status": 'EXTENSION NOT FOUND'})
+        }
     }
-    fs.createReadStream(qlikShareFolder + '/Apps/' + req.query.appId).pipe(fs.createWriteStream(appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.appName + '.qvf'));
-    res.send({ "name": req.query.extName, "status": status, })
 }
+
+
 
 exports.importApp = function (req, res) {
     var appFolder = req.query.appFolder;
-    var qrsInstance = {
-        hostname: engineHost,
-        localCertPath: certificatesPath,
-        repoAccount: 'UserDirectory=' + userDirectory + ';UserId=' + userId,
-        repoAccountUserDirectory: userDirectory,
-        repoAccountUserId: userId
-    };
-    var qrs = new qrsInteract(qrsInstance);
     var stream = fs.createReadStream(appFolder);
     if (req.query.type == "ext") {
         qrs.Post('/extension/upload', stream, 'vnd.qlik.sense.app').then(function (result) {
             console.log(result);
             if(result.statusCode == 201) {
-                res.send({"name":result.body[0].name, "type": "ext", "status": "COMPLETE"});
+                res.send({"name": result.body.name, "type": "ext", "status": "COMPLETE"});
             }
         })
     }
@@ -133,9 +151,8 @@ exports.importApp = function (req, res) {
         qrs.Post('app/upload?name=' + req.query.appName,stream,'application/vnd.qlik.sense.app').then(function (result) {
             console.log(result);
             if(result.statusCode == 201) {
-                res.send({"name":result.body[0].name, "type": "app", "status": "COMPLETE"});
+                res.send({"name": result.body.name, "type": "app", "status": "COMPLETE"});
             }
         });
     }
-
 }
