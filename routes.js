@@ -94,34 +94,56 @@ exports.findExtensions = async function (req, res) {
     }
 }
 
-exports.zipExtension = function (req, res) {
+exports.zipExtension = async function (req, res) {
     var status = '';
     if (!fs.existsSync(appExporterFolder + '/AppExporter')) {
         fs.mkdir(appExporterFolder + '/AppExporter');
     }
     if (fs.existsSync(qlikShareFolder + '/StaticContent/Extensions/' + req.query.extName)) {
         if (!fs.existsSync(appExporterFolder + '/AppExporter/' + req.query.appName)) {
-            fs.mkdir(appExporterFolder + '/AppExporter/' + req.query.appName);
+            await fs.mkdir(appExporterFolder + '/AppExporter/' + req.query.appName);
+            zipFolder(qlikShareFolder + '/StaticContent/Extensions/' + req.query.extName, appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.extName + '.zip', function (err) {
+                if (err) {
+                    if(req.query.last = 1) {
+                        fs.createReadStream(qlikShareFolder + '/Apps/' + req.query.appId).pipe(fs.createWriteStream(appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.appName + '.qvf'));
+                        
+                        res.send([{"name": req.query.extName, "type": "ext", "status": err},{"name": req.query.appName, "type": "app", "status": 'COMPLETE'}])
+                    }
+                    else {
+                        res.send({ "name": req.query.extName, "type": "ext", "status": err})
+                    }
+                } else {
+                    if(req.query.last = 1) {
+                        fs.createReadStream(qlikShareFolder + '/Apps/' + req.query.appId).pipe(fs.createWriteStream(appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.appName + '.qvf'));
+                        res.send([{"name": req.query.extName, "type": "ext", "status": 'COMPLETE'},{"name": req.query.appName, "type": "app", "status": 'COMPLETE'}])
+                    }
+                    else {
+                        res.send({ "name": req.query.extName, "type": "ext", "status": 'COMPLETE'})
+                    }
+                }
+            });
         }
-        zipFolder(qlikShareFolder + '/StaticContent/Extensions/' + req.query.extName, appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.extName + '.zip', function (err) {
-            if (err) {
-                if(req.query.last = 1) {
-                    fs.createReadStream(qlikShareFolder + '/Apps/' + req.query.appId).pipe(fs.createWriteStream(appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.appName + '.qvf'));
-                    res.send([{"name": req.query.extName, "type": "ext", "status": err},{"name": req.query.appName, "type": "app", "status": 'COMPLETE'}])
+        else {
+            zipFolder(qlikShareFolder + '/StaticContent/Extensions/' + req.query.extName, appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.extName + '.zip', function (err) {
+                if (err) {
+                    if(req.query.last = 1) {
+                        fs.createReadStream(qlikShareFolder + '/Apps/' + req.query.appId).pipe(fs.createWriteStream(appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.appName + '.qvf'));
+                        res.send([{"name": req.query.extName, "type": "ext", "status": err},{"name": req.query.appName, "type": "app", "status": 'COMPLETE'}])
+                    }
+                    else {
+                        res.send({ "name": req.query.extName, "type": "ext", "status": err})
+                    }
+                } else {
+                    if(req.query.last = 1) {
+                        fs.createReadStream(qlikShareFolder + '/Apps/' + req.query.appId).pipe(fs.createWriteStream(appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.appName + '.qvf'));
+                        res.send([{"name": req.query.extName, "type": "ext", "status": 'COMPLETE'},{"name": req.query.appName, "type": "app", "status": 'COMPLETE'}])
+                    }
+                    else {
+                        res.send({ "name": req.query.extName, "type": "ext", "status": 'COMPLETE'})
+                    }
                 }
-                else {
-                    res.send({ "name": req.query.extName, "type": "ext", "status": err})
-                }
-            } else {
-                if(req.query.last = 1) {
-                    fs.createReadStream(qlikShareFolder + '/Apps/' + req.query.appId).pipe(fs.createWriteStream(appExporterFolder + '/AppExporter/' + req.query.appName + '/' + req.query.appName + '.qvf'));
-                    res.send([{"name": req.query.extName, "type": "ext", "status": 'COMPLETE'},{"name": req.query.appName, "type": "app", "status": 'COMPLETE'}])
-                }
-                else {
-                    res.send({ "name": req.query.extName, "type": "ext", "status": 'COMPLETE'})
-                }
-            }
-        });
+            });
+        }
     }
     else {
         if(req.query.last = 1) {

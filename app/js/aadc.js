@@ -67,7 +67,10 @@ $(document).ready(function () {
 							list[i].qType != 'embeddedsnapshot' &&
 							list[i].qType != 'slide' &&
 							list[i].qType != 'slideitem' &&
-							list[i].qType != 'ColorMap'
+							list[i].qType != 'ColorMap' &&
+							list[i].qType != 'my-list-object' &&
+							list[i].qType != 'my-field-list'
+
 						) {
 							if (extensionList.indexOf(list[i].qType) == -1) {
 								extensionList.push(list[i].qType);
@@ -89,7 +92,9 @@ $(document).ready(function () {
 							type: "GET",
 							data: $.param(params),
 							success: function (response) {
-								zipResponses.push(response);
+								for(i=0;i<response.length;i++) {
+									zipResponses.push(response[i]);
+								}
 							},
 							error: function (jqXHR, textStatus, errorThrown) {
 								console.log(textStatus, errorThrown);
@@ -99,7 +104,8 @@ $(document).ready(function () {
 					setTimeout(function () {
 						console.log(JSON.stringify(zipResponses));
 						$('#form').show();
-						$('#status').append(document.createTextNode(JSON.stringify(zipResponses)));
+							var string = JSON.stringify(zipResponses, null, 2)
+							$('#status').append(document.createTextNode(string));
 					}, 1500);
 				},
 				error: function (jqXHR, textStatus, errorThrown) {
